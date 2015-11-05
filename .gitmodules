@@ -1,0 +1,3 @@
+[submodule "DS2482-Breakout"]
+	path = DS2482-Breakout
+	url = git@github.com:madpilot/DS2482-Breakout.git
