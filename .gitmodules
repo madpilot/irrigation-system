@@ -1,0 +1,9 @@
+[submodule "libraries/DS2482-Breakout"]
+	path = libraries/DS2482-Breakout
+	url = git@github.com:madpilot/DS2482-Breakout.git
+[submodule "libraries/arduino-mock"]
+	path = libraries/arduino-mock
+	url = git@github.com:ikeyasu/arduino-mock.git
+[submodule "libraries/Adafruit_CC3000"]
+	path = libraries/Adafruit_CC3000
+	url = git@github.com:adafruit/Adafruit_CC3000_Library.git
