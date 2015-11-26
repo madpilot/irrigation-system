@@ -11,22 +11,10 @@
 #define E_WIFI_AP_NOT_FOUND -2;
 #define E_WIFI_SC_NOT_FOUND -3;
 
-typedef int WifiReturnCode;
+typedef int wifi_return_code;
 
-class Wifi {
-  private:
-    Adafruit_CC3000 *cc3000;
-    bool connected;
-    WifiReturnCode initialize(bool setupFirst);
-    WifiReturnCode initializeWithSetup();
-    WifiReturnCode initializeWithoutSetup();
-    WifiReturnCode configure();
-    WifiReturnCode requestIP();
-  public:
-    Wifi();
-    ~Wifi();
-    WifiReturnCode connect(bool setupFirst);
-    void disconnect();
-};
+extern "C" {
+  wifi_return_code wifi_connect(Adafruit_CC3000 &cc3000, bool setup_first);
+}
 
 #endif

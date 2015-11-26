@@ -1,89 +1,68 @@
 #include "wifi.h"
-#define CC3000_IRQ 3
-#define CC3000_VBAT 5
-#define CC3000_CS 10
 #define CC3000_DEVICE_NAME "CC3000"
 
-#define WLAN_SECURITY   WLAN_SEC_WPA2
+// Hidden internal functions
+wifi_return_code initialize_without_setup(Adafruit_CC3000 &cc3000);
+wifi_return_code initialize_with_setup(Adafruit_CC3000 &cc3000);
+wifi_return_code initialize(Adafruit_CC3000 &cc3000, bool setup_first);
+wifi_return_code configure(Adafruit_CC3000 &cc3000);
+wifi_return_code request_ip(Adafruit_CC3000 &cc3000);
 
-Wifi::Wifi(void) {
-  this->cc3000 = new Adafruit_CC3000(CC3000_CS, CC3000_IRQ, CC3000_VBAT, SPI_CLOCK_DIVIDER);
-  this->connected = false;
-}
-
-Wifi::~Wifi(void) {
-  if(this->connected) {
-    this->cc3000->disconnect();
-  }
-}
-
-WifiReturnCode Wifi::initializeWithSetup() {
+wifi_return_code initialize_with_setup(Adafruit_CC3000 &cc3000) {
   Serial.println("Initializing With Setup");
-  if(this->cc3000->begin(false)) {
-    return this->configure();
+  if(cc3000.begin(false)) {
+    return configure(cc3000);
   }
   return E_WIFI_HARDWARE_ISSUE;
 }
 
-WifiReturnCode Wifi::initializeWithoutSetup() {
+wifi_return_code initialize_without_setup(Adafruit_CC3000 &cc3000) {
   Serial.println("Initializing Without Setup");
-  if(this->cc3000->begin(false, true, CC3000_DEVICE_NAME)) {
+  if(cc3000.begin(false, true, CC3000_DEVICE_NAME)) {
     return E_WIFI_SUCCESS;
   }
   return E_WIFI_HARDWARE_ISSUE;
 }
 
-WifiReturnCode Wifi::initialize(bool setupFirst) {
+wifi_return_code initialize(Adafruit_CC3000 &cc3000, bool setup_first) {
   Serial.println("Initializing");
-  if(setupFirst) {
-    return this->initializeWithSetup();
+  if(setup_first) {
+    return initialize_with_setup(cc3000);
   } else {
-    return this->initializeWithoutSetup();
+    return initialize_without_setup(cc3000);
   }
 }
 
-WifiReturnCode Wifi::configure() {
+wifi_return_code configure(Adafruit_CC3000 &cc3000) {
   Serial.println("Starting Smart Config");
-  if (cc3000->startSmartConfig(CC3000_DEVICE_NAME)) {
+  if (cc3000.startSmartConfig(CC3000_DEVICE_NAME)) {
     return E_WIFI_SUCCESS;
   } else {
     return E_WIFI_SC_NOT_FOUND;
   }
 }
 
-WifiReturnCode Wifi::requestIP() {
+wifi_return_code request_ip(Adafruit_CC3000 &cc3000) {
   uint32_t ipAddress, netmask, gateway, dhcpserv, dnsserv;
 
   Serial.println("Requesting an IP");
-  while (!cc3000->checkDHCP()) {
+  while (!cc3000.checkDHCP()) {
     delay(100);
   }
 
 
-  cc3000->getIPAddress(&ipAddress, &netmask, &gateway, &dhcpserv, &dnsserv);
-  Serial.println("\nIP Addr: ");
-  cc3000->printIPdotsRev(ipAddress);
+  cc3000.getIPAddress(&ipAddress, &netmask, &gateway, &dhcpserv, &dnsserv);
+  Serial.print("IP Addrress");
+  cc3000.printIPdotsRev(ipAddress);
+  Serial.print("\n");
   return E_WIFI_SUCCESS;
 }
 
-WifiReturnCode Wifi::connect(bool setupFirst) {
-  Serial.println("Connecting");
-  if(this->connected) {
-    return E_WIFI_SUCCESS;
+wifi_return_code wifi_connect(Adafruit_CC3000 &cc3000, bool setup_first) {
+  wifi_return_code return_code = initialize(cc3000, setup_first);
+  if(return_code != E_WIFI_SUCCESS) {
+    return return_code;
   }
 
-  WifiReturnCode returnCode = this->initialize(setupFirst);
-  if(returnCode != E_WIFI_SUCCESS) {
-    return returnCode;
-  }
-
-  this->connected = true;
-  return this->requestIP();
-}
-
-void Wifi::disconnect() {
-  if(this->connected) {
-    this->cc3000->disconnect();
-    this->connected = false;
-  }
+  return request_ip(cc3000);
 }
